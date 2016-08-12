@@ -320,6 +320,10 @@
 		<text>invalid args</text>
 	</error>
 	<error>
+		<code>40095</code>
+		<text>修改失败，并发冲突</text>
+	</error>
+	<error>
 		<code>40099</code>
 		<text>卡券已被核销。</text>
 	</error>
@@ -692,6 +696,10 @@
 		<text>用户领取次数超过限制get_limit</text>
 	</error>
 	<error>
+		<code>45046</code>
+		<text>该card_id已经设置了买单功能，不可变更为自助核销功能，设置冲突</text>
+	</error>
+	<error>
 		<code>45047</code>
 		<text>客服接口下行条数超过上限</text>
 	</error>
@@ -821,7 +829,7 @@
 	</error>
 	<error>
 		<code>60008</code>
-		<text>部门名称已存在</text>
+		<text>部门ID或者部门名称已存在</text>
 	</error>
 	<error>
 		<code>60009</code>

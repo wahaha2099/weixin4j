@@ -26,11 +26,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.parser.Feature;
 import com.foxinmy.weixin4j.exception.WeixinException;
-import com.foxinmy.weixin4j.http.weixin.JsonResult;
-import com.foxinmy.weixin4j.http.weixin.WeixinRequestExecutor;
+import com.foxinmy.weixin4j.http.entity.FormUrlEntity;
+import com.foxinmy.weixin4j.http.weixin.ApiResult;
 import com.foxinmy.weixin4j.http.weixin.WeixinResponse;
-import com.foxinmy.weixin4j.http.weixin.WeixinSSLRequestExecutor;
-import com.foxinmy.weixin4j.model.Consts;
 import com.foxinmy.weixin4j.model.Token;
 import com.foxinmy.weixin4j.mp.oldpayment.OrderV2;
 import com.foxinmy.weixin4j.mp.oldpayment.PayPackageV2;
@@ -44,10 +42,11 @@ import com.foxinmy.weixin4j.setting.Weixin4jSettings;
 import com.foxinmy.weixin4j.sign.WeixinPaymentSignature;
 import com.foxinmy.weixin4j.sign.WeixinSignature;
 import com.foxinmy.weixin4j.token.TokenManager;
-import com.foxinmy.weixin4j.type.BillType;
 import com.foxinmy.weixin4j.type.IdQuery;
-import com.foxinmy.weixin4j.type.RefundType;
 import com.foxinmy.weixin4j.type.SignType;
+import com.foxinmy.weixin4j.type.mch.BillType;
+import com.foxinmy.weixin4j.type.mch.RefundType;
+import com.foxinmy.weixin4j.util.Consts;
 import com.foxinmy.weixin4j.util.DateUtil;
 import com.foxinmy.weixin4j.util.DigestUtil;
 import com.foxinmy.weixin4j.util.MapUtil;
@@ -262,8 +261,10 @@ public class PayOldApi extends MpApi {
 			map.put("service_version", "1.1");
 			map.put("partner", weixinAccount.getPartnerId());
 			map.put("out_refund_no", outRefundNo);
-			map.put("total_fee", DateUtil.formaFee2Fen(totalFee));
-			map.put("refund_fee", DateUtil.formaFee2Fen(refundFee));
+			map.put("total_fee",
+					Integer.toString(DateUtil.formatYuan2Fen(totalFee)));
+			map.put("refund_fee",
+					Integer.toString(DateUtil.formatYuan2Fen(refundFee)));
 			map.put(idQuery.getType().getName(), idQuery.getId());
 			if (StringUtil.isBlank(opUserId)) {
 				opUserId = weixinAccount.getPartnerId();
@@ -312,10 +313,9 @@ public class PayOldApi extends MpApi {
 			ctx = SSLContext.getInstance(Consts.TLS);
 			ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(),
 					new SecureRandom());
-
-			WeixinRequestExecutor weixinExecutor = new WeixinSSLRequestExecutor(
-					ctx);
-			response = weixinExecutor.get(refund_uri, map);
+			response = weixinExecutor.createSSLRequestExecutor(ctx).get(
+					String.format("%s?%s", refund_uri,
+							FormUrlEntity.formatParameters(map)));
 		} catch (WeixinException e) {
 			throw e;
 		} catch (Exception e) {
@@ -459,14 +459,15 @@ public class PayOldApi extends MpApi {
 		map.put("key", weixinAccount.getPartnerKey());
 		String sign = DigestUtil.MD5(MapUtil.toJoinString(map, false, false));
 		map.put("sign", sign.toLowerCase());
-		WeixinResponse response = weixinExecutor.get(downloadbill_uri, map);
+		WeixinResponse response = weixinExecutor.get(String.format("%s?%s",
+				downloadbill_uri, FormUrlEntity.formatParameters(map)));
 		BufferedReader reader = null;
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(new OutputStreamWriter(
 					new FileOutputStream(file), Consts.GBK));
 			reader = new BufferedReader(new InputStreamReader(
-					response.getBody(), com.foxinmy.weixin4j.model.Consts.GBK));
+					response.getBody(), com.foxinmy.weixin4j.util.Consts.GBK));
 			String line = null;
 			while ((line = reader.readLine()) != null) {
 				writer.write(line);
@@ -510,7 +511,8 @@ public class PayOldApi extends MpApi {
 		map.put(idQuery.getType().getName(), idQuery.getId());
 		String sign = weixinMD5Signature.sign(map);
 		map.put("sign", sign.toLowerCase());
-		WeixinResponse response = weixinExecutor.get(refundquery_uri, map);
+		WeixinResponse response = weixinExecutor.get(String.format(
+				refundquery_uri, FormUrlEntity.formatParameters(map)));
 		return ListsuffixResultDeserializer.deserialize(response.getAsString(),
 				RefundRecordV2.class);
 	}
@@ -531,7 +533,7 @@ public class PayOldApi extends MpApi {
 	 * @return 发货处理结果
 	 * @throws WeixinException
 	 */
-	public JsonResult deliverNotify(String openId, String transid,
+	public ApiResult deliverNotify(String openId, String transid,
 			String outTradeNo, boolean status, String statusMsg)
 			throws WeixinException {
 		String delivernotify_uri = getRequestUri("delivernotify_old_uri");
@@ -552,7 +554,7 @@ public class PayOldApi extends MpApi {
 		WeixinResponse response = weixinExecutor.post(
 				String.format(delivernotify_uri, token.getAccessToken()),
 				JSON.toJSONString(map));
-		return response.getAsJsonResult();
+		return response.getAsResult();
 	}
 
 	/**
@@ -565,12 +567,12 @@ public class PayOldApi extends MpApi {
 	 * @return 维权处理结果
 	 * @throws WeixinException
 	 */
-	public JsonResult updateFeedback(String openId, String feedbackId)
+	public ApiResult updateFeedback(String openId, String feedbackId)
 			throws WeixinException {
 		String payfeedback_uri = getRequestUri("payfeedback_old_uri");
 		Token token = tokenManager.getCache();
 		WeixinResponse response = weixinExecutor.get(String.format(
 				payfeedback_uri, token.getAccessToken(), openId, feedbackId));
-		return response.getAsJsonResult();
+		return response.getAsResult();
 	}
 }

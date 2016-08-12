@@ -7,11 +7,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.foxinmy.weixin4j.exception.WeixinException;
 import com.foxinmy.weixin4j.http.weixin.WeixinResponse;
-import com.foxinmy.weixin4j.model.Consts;
 import com.foxinmy.weixin4j.model.WeixinAccount;
 import com.foxinmy.weixin4j.mp.model.OauthToken;
 import com.foxinmy.weixin4j.mp.model.User;
 import com.foxinmy.weixin4j.mp.type.Lang;
+import com.foxinmy.weixin4j.util.Consts;
 import com.foxinmy.weixin4j.util.Weixin4jConfigUtil;
 
 /**
@@ -220,7 +220,7 @@ public class OauthApi extends MpApi {
 	}
 
 	/**
-	 * 请求CODE
+	 * 微信开放平台oauth授权:请求CODE
 	 *
 	 * @param redirectUri
 	 *            重定向地址 域名与审核时填写的授权域名一致

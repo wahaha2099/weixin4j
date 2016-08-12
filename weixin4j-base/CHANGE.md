@@ -150,3 +150,18 @@
 * 2016-05-12
 
   + 添加MemcacheTokenStorager支持
+  
+* 2016-07-30
+
+  + 重新整理HttpClinet
+  
+  + 新增OkHttp实现
+  
+  
+* 2016-08-05
+
+  + model包拆分media/paging
+  
+  + type包拆分card/mch
+  
+  + 新增card卡券相关类
